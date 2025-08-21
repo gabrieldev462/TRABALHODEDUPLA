@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h2>Dashboard do Professor</h2>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <p>Total de Alunos Cadastrados: <strong>{{ total_alunos|default:"0" }}</strong></p>
+        <p>Alunos que Votaram: <strong>{{ alunos_votaram|default:"0" }}</strong></p>
+    </div>
+</div>
+
+<h3>Resultados das Logomarcas</h3>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Votos</th>
+            <th>Percentual</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if logomarcas %}
+            {% for logo in logomarcas %}
+                {% with percentual=logo.percentual_votos|default_if_none:0|floatformat:"2" %}
+                    <tr>
+                        <td>{{ logo.nome|default:"-" }}</td>
+                        <td>{{ logo.votos|default:"0" }}</td>
+                        <td>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" 
+                                     data-percent="{{ percentual }}"
+                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                    {{ percentual }}%
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% endwith %}
+            {% endfor %}
+        {% else %}
+            <tr><td colspan="3">Nenhuma logomarca cadastrada.</td></tr>
+        {% endif %}
+    </tbody>
+</table>
+
+<!-- Script para atualizar barras dinamicamente -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const bars = document.querySelectorAll('.progress-bar');
+    bars.forEach(bar => {
+        const percent = bar.getAttribute('data-percent');
+        bar.style.width = percent + '%';
+        bar.setAttribute('aria-valuenow', percent);
+    });
+});
+</script>
+{% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard do Professor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>

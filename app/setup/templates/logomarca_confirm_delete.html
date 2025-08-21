@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Excluir Logomarca{% endblock %}
+{% block content %}
+<h2>Excluir Logomarca</h2>
+<p>Confirma a exclusão de "{{ object.nome }}"?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Excluir</button>
+    <a href="{% url 'logomarca_list' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}
