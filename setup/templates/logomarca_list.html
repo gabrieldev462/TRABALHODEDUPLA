@@ -1,31 +1,117 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Gerenciar Logomarcas{% endblock %}
+{% block extra_css %}
+<style>
+/* CSS do dashboard para visual bonito */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px;
+}
+.card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    margin-bottom: 2rem;
+}
+.table {
+    background: rgba(255,255,255,0.97);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(31,38,135,0.07);
+    overflow: hidden;
+}
+.table th {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: #fff;
+    font-weight: 600;
+    border: none;
+}
+.table td {
+    vertical-align: middle !important;
+    border: none;
+}
+.btn-primary, .btn-warning, .btn-danger {
+    border-radius: 25px;
+    font-weight: 500;
+    padding: 8px 18px;
+    margin-right: 5px;
+}
+.btn-primary {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: #fff;
+    border: none;
+}
+.btn-warning {
+    background: linear-gradient(45deg, #ffb347, #ffcc80);
+    color: #333;
+    border: none;
+}
+.btn-danger {
+    background: linear-gradient(45deg, #ff6b6b, #c0392b);
+    color: #fff;
+    border: none;
+}
+img {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(31,38,135,0.07);
+    background: #f8f9fa;
+}
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    .table th, .table td {
+        font-size: 0.95rem;
+    }
+}
+</style>
+{% endblock %}
 {% block content %}
-<h2>Logomarcas Cadastradas</h2>
-<a href="{% url 'logomarca_create' %}" class="btn btn-primary mb-3">Adicionar Nova</a>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Nome</th>
-            <th>Imagem</th>
-            <th>Descrição</th>
-            <th>Ações</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for logo in logomarcas %}
-            <tr>
-                <td>{{ logo.nome }}</td>
-                <td><img src="{{ logo.imagem.url }}" alt="{{ logo.nome }}" style="width: 100px;"></td>
-                <td>{{ logo.descricao|truncatewords:10 }}</td>
-                <td>
-                    <a href="{% url 'logomarca_update' logo.pk %}" class="btn btn-sm btn-warning">Editar</a>
-                    <a href="{% url 'logomarca_delete' logo.pk %}" class="btn btn-sm btn-danger">Excluir</a>
-                </td>
-            </tr>
-        {% empty %}
-            <tr><td colspan="4">Nenhuma logomarca.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="container">
+    <h2>Logomarcas Cadastradas</h2>
+    <a href="{% url 'logomarca_create' %}" class="btn btn-primary mb-3">Adicionar Nova</a>
+    <div class="card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Imagem</th>
+                    <th>Descrição</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for logo in logomarcas %}
+                    <tr>
+                        <td>{{ logo.nome }}</td>
+                        <td>
+                            {% if logo.imagem %}
+                                <img src="{{ logo.imagem.url }}" alt="{{ logo.nome }}" style="width: 100px; max-height: 100px; object-fit: contain;">
+                            {% else %}
+                                <span class="text-muted">Sem imagem</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ logo.descricao|truncatewords:10 }}</td>
+                        <td>
+                            <a href="{% url 'logomarca_update' logo.pk %}" class="btn btn-warning btn-sm">Editar</a>
+                            <a href="{% url 'logomarca_delete' logo.pk %}" class="btn btn-danger btn-sm">Excluir</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4">Nenhuma logomarca.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

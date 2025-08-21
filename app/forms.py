@@ -19,6 +19,13 @@ class AlunoCadastroForm(UserCreationForm):
             raise forms.ValidationError("CPF já cadastrado.")
         return cpf
 
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.username = user.cpf  # Garante que username será igual ao CPF
+        if commit:
+            user.save()
+        return user
+
 class LogomarcaForm(forms.ModelForm):
     class Meta:
         model = Logomarca

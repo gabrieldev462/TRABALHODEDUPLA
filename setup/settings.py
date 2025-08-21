@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-23te-1cjxwi)95xmz(*r((=w_k%hwdj*tw-xhk1e!zlolheq@p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['deploy-au3u.onrender.com']
+ALLOWED_HOSTS = []
 
 # Application definition
 
@@ -73,22 +73,6 @@ WSGI_APPLICATION = 'setup.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'votacao_db',
-        'USER': 'souza12',
-        'PASSWORD': 'wAiyC@jFx35b!d',
-        'HOST': '',
-        'PORT': 'localhost',
-        'OPTIONS': {
-            'unix_socket': '/opt/lampp/var/mysql/mysql.sock',
-        },
-    }
-}
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -134,6 +118,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 

@@ -27,7 +27,7 @@ class AlunoManager(BaseUserManager):
         return self.create_user(cpf, password, **extra_fields)
 
 class Aluno(AbstractUser):
-    cpf = models.CharField(max_length=9, unique=True, help_text="CPF sem pontos ou traços")
+    cpf = models.CharField(max_length=11, unique=True, help_text="CPF sem pontos ou traços (11 dígitos)")
     voto_realizado = models.BooleanField(default=False)
     is_professor = models.BooleanField(default=False)  # Campo para identificar professores
 

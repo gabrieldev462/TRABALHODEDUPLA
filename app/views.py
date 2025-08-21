@@ -46,22 +46,32 @@ def votar(request):
     if request.user.is_professor:
         messages.error(request, 'Professores não podem votar.')
         return redirect('home')
-    if request.user.voto_realizado:
-        messages.error(request, 'Você já votou.')
-        return redirect('home')
     logomarcas = Logomarca.objects.all()
+    if request.user.voto_realizado:
+        return render(request, 'votar.html', {
+            'logomarcas': logomarcas,
+            'ja_votou': True,
+            'nome_aluno': request.user.first_name,
+        })
     if request.method == 'POST':
         logo_id = request.POST.get('logo_id')
         if logo_id:
-            logo = Logomarca.objects.get(id=logo_id)
-            logo.votos += 1
-            logo.save()
-            Voto.objects.create(aluno=request.user, logomarca=logo)
-            request.user.voto_realizado = True
-            request.user.save()
-            messages.success(request, 'Voto registrado!')
-            return redirect('home')
-    return render(request, 'votar.html', {'logomarcas': logomarcas})
+            try:
+                logo = Logomarca.objects.get(id=logo_id)
+                logo.votos += 1
+                logo.save()
+                Voto.objects.create(aluno=request.user, logomarca=logo)
+                request.user.voto_realizado = True
+                request.user.save()
+                messages.success(request, 'Voto registrado!')
+                return redirect('votar')
+            except Logomarca.DoesNotExist:
+                messages.error(request, 'Logomarca inválida.')
+    return render(request, 'votar.html', {
+        'logomarcas': logomarcas,
+        'ja_votou': False,
+        'nome_aluno': request.user.first_name,
+    })
 
 class ProfessorRequiredMixin(UserPassesTestMixin):
     def test_func(self):

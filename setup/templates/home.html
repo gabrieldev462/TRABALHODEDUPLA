@@ -1,5 +1,28 @@
 {% extends 'base.html' %}
 {% block title %}Home{% endblock %}
+{% block extra_css %}
+<style>
+.jumbotron {
+    background: #f8f9fa;
+    padding: 2rem 1rem;
+    border-radius: 1rem;
+    margin-top: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.jumbotron h1 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    color: #2c3e50;
+}
+.jumbotron .lead {
+    font-size: 1.25rem;
+    color: #555;
+}
+.btn-primary, .btn-secondary {
+    margin: 0 0.5rem;
+}
+</style>
+{% endblock %}
 {% block content %}
 <div class="jumbotron text-center">
     <h1 class="display-4">Bem-vindo aos Jogos Internos 2025!</h1>

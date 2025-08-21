@@ -1,32 +1,263 @@
-{% extends 'base.html' %}
-{% block title %}Votar{% endblock %}
-{% block content %}
-<h2>Escolha uma Logomarca</h2>
-<form method="post">
-    {% csrf_token %}
-    <div class="row">
-        {% for logo in logomarcas %}
-            <div class="col-md-4 mb-3">
-                <div class="card">
-                    <img src="{{ logo.imagem.url }}" class="card-img-top" alt="{{ logo.nome }}" style="height: 200px; object-fit: cover;">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ logo.nome }}</h5>
-                        <p class="card-text">{{ logo.descricao|truncatewords:20 }}</p>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="logo_id" id="logo_{{ logo.id }}" value="{{ logo.id }}" required>
-                            <label class="form-check-label" for="logo_{{ logo.id }}">Votar nesta</label>
-                        </div>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogos Internos 2025 - Aluno</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+        /* Header styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            background-color: #667eea;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #5a6abf;
+        }
+        /* Welcome section styles */
+        .welcome-section {
+            text-align: center;
+            margin-top: 4rem;
+            margin-bottom: 2rem;
+        }
+        .welcome-title {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .welcome-subtitle {
+            font-size: 1.2rem;
+            color: #666;
+        }
+        /* Status banner styles */
+        .status-banner {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        /* Teams grid styles */
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .team-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            transition: transform 0.3s;
+            position: relative;
+        }
+        .team-card:hover {
+            transform: translateY(-5px);
+        }
+        .team-image {
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+        }
+        .team-info {
+            padding: 1rem;
+            text-align: center;
+        }
+        .team-name {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .team-subtitle {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        .vote-btn {
+            padding: 0.5rem 1rem;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .vote-btn:hover {
+            background-color: #218838;
+        }
+        /* Bottom message styles */
+        .bottom-message {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        /* Floating vote tab styles */
+        .vote-tab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: #fff;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+        .vote-tab.active {
+            transform: translateY(0);
+        }
+        .vote-tab-trigger {
+            background-color: #667eea;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .vote-tab-trigger:hover {
+            background-color: #5a6abf;
+        }
+        .vote-tab-content {
+            padding: 1.5rem;
+            display: none;
+        }
+        .vote-tab.active .vote-tab-content {
+            display: block;
+        }
+        /* Vote option styles */
+        .vote-option {
+            padding: 1rem;
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.3s, border-color 0.3s;
+            margin-bottom: 1rem;
+        }
+        .vote-option:hover {
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+        .submit-vote-btn {
+            padding: 0.75rem 1.5rem;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        .submit-vote-btn:hover {
+            background-color: #218838;
+        }
+        /* Animation and effect styles */
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">Jogos Internos 2025</div>
+        <div class="nav-buttons">
+            <a href="{% url 'votar' %}" class="nav-btn">Votar</a>
+            <a href="{% url 'logout' %}" class="nav-btn">Logout</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <h1 class="welcome-title">Seja bem-vindo aos Jogos Jeis 2025!</h1>
+            <p class="welcome-subtitle">Olá, {{ nome_aluno }}!</p>
+        </section>
+
+        <!-- Status Banner -->
+        {% if ja_votou %}
+        <div class="status-banner">
+            <p class="status-text">Você já votou! Veja as logomarcas participantes abaixo.</p>
+        </div>
+        {% endif %}
+
+        <!-- Teams Grid -->
+        <form method="post">
+            {% csrf_token %}
+            <div class="teams-grid">
+                {% for logo in logomarcas %}
+                <div class="team-card float-animation">
+                    <div class="team-image" style="background-image: url('{{ logo.imagem.url }}');">
+                        <div class="team-logo">🏆</div>
+                    </div>
+                    <div class="team-info">
+                        <h3 class="team-name">{{ logo.nome }}</h3>
+                        <p class="team-subtitle">{{ logo.descricao }}</p>
+                        {% if not ja_votou %}
+                        <button type="submit" name="logo_id" value="{{ logo.id }}" class="vote-btn">Votar</button>
+                        {% endif %}
                     </div>
                 </div>
+                {% endfor %}
             </div>
-        {% empty %}
-            <p>Nenhuma logomarca cadastrada.</p>
-        {% endfor %}
+        </form>
+
+        <!-- Bottom Message -->
+        <div class="bottom-message">
+            <p>Feito com carinho pela equipe dos Jogos Internos 2025. Sua participação é fundamental! 😊</p>
+        </div>
     </div>
-    <button type="submit" class="btn btn-success">Confirmar Voto</button>
-</form>
-{% endblock %}
-<head>
-    <!-- ...existing code... -->
-    <link rel="stylesheet" href="{% static 'css/votar.css' %}">
-</head>
+    <!-- ...existing JS if needed... -->
+</body>
+</html>

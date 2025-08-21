@@ -1,5 +1,24 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Login{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/login_cadastro.css' %}">
+<style>
+.card {
+    margin-top: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    border-radius: 0.5rem;
+}
+.card-header {
+    font-weight: 600;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+.btn-primary {
+    width: 100%;
+}
+</style>
+{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6">

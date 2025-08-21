@@ -1,68 +1,317 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Dashboard{% endblock %}
-
-{% block content %}
-<h2>Dashboard do Professor</h2>
-
-<div class="card mb-3">
-    <div class="card-body">
-        <p>Total de Alunos Cadastrados: <strong>{{ total_alunos|default:"0" }}</strong></p>
-        <p>Alunos que Votaram: <strong>{{ alunos_votaram|default:"0" }}</strong></p>
-    </div>
-</div>
-
-<h3>Resultados das Logomarcas</h3>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Nome</th>
-            <th>Votos</th>
-            <th>Percentual</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% if logomarcas %}
-            {% for logo in logomarcas %}
-                {% with percentual=logo.percentual_votos|default_if_none:0|floatformat:"2" %}
-                    <tr>
-                        <td>{{ logo.nome|default:"-" }}</td>
-                        <td>{{ logo.votos|default:"0" }}</td>
-                        <td>
-                            <div class="progress">
-                                <div class="progress-bar" role="progressbar" 
-                                     data-percent="{{ percentual }}"
-                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                                    {{ percentual }}%
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                {% endwith %}
-            {% endfor %}
-        {% else %}
-            <tr><td colspan="3">Nenhuma logomarca cadastrada.</td></tr>
-        {% endif %}
-    </tbody>
-</table>
-
-<!-- Script para atualizar barras dinamicamente -->
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const bars = document.querySelectorAll('.progress-bar');
-    bars.forEach(bar => {
-        const percent = bar.getAttribute('data-percent');
-        bar.style.width = percent + '%';
-        bar.setAttribute('aria-valuenow', percent);
-    });
-});
-</script>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard do Professor</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            grid-template-rows: auto 1fr;
+            grid-template-areas: 
+                "sidebar header"
+                "sidebar main";
+            gap: 20px;
+            min-height: 100vh;
+        }
+        /* Sidebar */
+        .sidebar {
+            grid-area: sidebar;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .profile { text-align: center; margin-bottom: 30px; }
+        .profile-img {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 24px; color: #fff; font-weight: bold;
+        }
+        .profile h3 { color: #2c3e50; margin-bottom: 5px; }
+        .profile p { color: #7f8c8d; font-size: 14px; }
+        .nav-menu { list-style: none; padding: 0; }
+        .nav-menu li { margin-bottom: 10px; }
+        .nav-menu a {
+            display: flex; align-items: center;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #555;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .nav-menu a:hover, .nav-menu a.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: #fff;
+            transform: translateX(5px);
+        }
+        .nav-menu a::before { content: "📊"; margin-right: 10px; }
+        .nav-menu a[href="#students"]::before { content: "👥"; }
+        .nav-menu a[href="#grades"]::before { content: "📝"; }
+        .nav-menu a[href="#attendance"]::before { content: "📅"; }
+        .nav-menu a[href="#reports"]::before { content: "📈"; }
+        /* Header */
+        .header {
+            grid-area: header;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { color: #2c3e50; font-size: 28px; font-weight: 300; }
+        .header-actions { display: flex; gap: 15px; }
+        .btn {
+            padding: 10px 20px;
+            border: none; border-radius: 25px;
+            cursor: pointer; font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        /* Main Content */
+        .main-content {
+            grid-area: main;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: transform 0.3s ease;
+            animation: fadeInUp 0.6s ease;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .card h3 { color: #2c3e50; margin-bottom: 15px; font-size: 18px; font-weight: 600; }
+        /* Stats Grid */
+        .stats-grid {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 0;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 200% 200%;
+            animation: gradientShift 3s ease infinite;
+        }
+        @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .stat-number { font-size: 32px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
+        .stat-label { color: #7f8c8d; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+        /* Charts */
+        .chart-container { position: relative; height: 300px; margin-top: 15px; }
+        .chart-large { grid-column: 1 / -1; }
+        .chart-large .chart-container { height: 400px; }
+        /* Progress bars */
+        .progress-item { margin-bottom: 15px; }
+        .progress-label {
+            display: flex; justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px; color: #2c3e50;
+        }
+        .progress-bar { height: 8px; background: #ecf0f1; border-radius: 4px; overflow: hidden; position: relative; }
+        .progress-fill {
+            height: 100%; border-radius: 4px; position: relative;
+            transition: width 1s ease;
+        }
+        .progress-fill::after {
+            content: '';
+            position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: progressShine 2s infinite;
+        }
+        @keyframes progressShine { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        /* Activity feed */
+        .activity-item {
+            display: flex; align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-icon {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white; display: flex; align-items: center; justify-content: center;
+            margin-right: 15px; font-size: 16px;
+        }
+        .activity-content { flex: 1; }
+        .activity-title { font-weight: 600; color: #2c3e50; margin-bottom: 3px; }
+        .activity-time { font-size: 12px; color: #7f8c8d; }
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-areas: "header" "sidebar" "main";
+                padding: 10px;
+            }
+            .sidebar { padding: 20px; }
+            .main-content { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="profile">
+                <div class="profile-img">PF</div>
+                <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+                <p>Professor</p>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#dashboard" class="active">Dashboard</a></li>
+            </ul>
+        </nav>
+        <!-- Header -->
+        <header class="header">
+            <h1>Dashboard do Professor</h1>
+            <div class="header-actions">
+                <a href="{% url 'logout' %}" class="btn btn-primary">Sair</a>
+            </div>
+        </header>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalAlunos">{{ total_alunos }}</div>
+                    <div class="stat-label">Total de Alunos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="alunosVotaram">{{ alunos_votaram }}</div>
+                    <div class="stat-label">Alunos que Votaram</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalVotos">{{ logomarcas|length }}</div>
+                    <div class="stat-label">Logomarcas Participantes</div>
+                </div>
+            </div>
+            <!-- Resultados das Logomarcas -->
+            <div class="card chart-large">
+                <h3>📊 Resultados das Logomarcas</h3>
+                <div class="chart-container">
+                    <canvas id="logosChart"></canvas>
+                </div>
+            </div>
+            <!-- Progresso das Logomarcas -->
+            <div class="card">
+                <h3>📈 Progresso das Logomarcas</h3>
+                {% for logo in logomarcas %}
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span>{{ logo.nome }}</span>
+                        <span>{{ logo.percentual_votos|floatformat:"2" }}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ logo.percentual_votos|floatformat:"2" }}%; background: linear-gradient(45deg, #667eea, #764ba2);"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </main>
+    </div>
+    <script>
+        // Gráfico de resultados das logomarcas
+        const logosCtx = document.getElementById('logosChart').getContext('2d');
+        const logoLabels = [
+            {% for logo in logomarcas %}
+                "{{ logo.nome }}"{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        const logoVotes = [
+            {% for logo in logomarcas %}
+                {{ logo.votos }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        new Chart(logosCtx, {
+            type: 'bar',
+            data: {
+                labels: logoLabels,
+                datasets: [{
+                    label: 'Votos',
+                    data: logoVotes,
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.1)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+        // Animação para contadores
+        function animateNumbers() {
+            document.querySelectorAll('.stat-number').forEach(number => {
+                const target = number.textContent;
+                const numericTarget = parseFloat(target.replace('%', ''));
+                let current = 0;
+                const increment = numericTarget / 50;
+                const isPercentage = target.includes('%');
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= numericTarget) {
+                        current = numericTarget;
+                        clearInterval(timer);
+                    }
+                    number.textContent = isPercentage ? Math.round(current) + '%' : Math.round(current);
+                }, 30);
+            });
+        }
+        window.addEventListener('load', () => setTimeout(animateNumbers, 500));
+    </script>
+</body>
+</html>
