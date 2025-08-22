@@ -30,8 +30,7 @@
     {% if user.is_authenticated %}
         <p>Olá, {{ user.first_name }}! {% if user.is_professor %}Você é professor.{% else %}Você pode votar.{% endif %}</p>
     {% else %}
-        <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
-        <a href="{% url 'cadastro_aluno' %}" class="btn btn-secondary">Cadastro</a>
+        <a href="{% url 'login_cadastro' %}" class="btn btn-primary">Login / Cadastro</a>
     {% endif %}
 </div>
 {% endblock %}

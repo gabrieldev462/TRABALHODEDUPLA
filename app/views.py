@@ -13,33 +13,44 @@ from django.db.models import Sum  # Adicione este import no topo se não existir
 def home(request):
     return render(request, 'home.html')
 
-def cadastro_aluno(request):
-    if request.method == 'POST':
-        form = AlunoCadastroForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'Cadastro realizado!')
-            return redirect('home')
-    else:
-        form = AlunoCadastroForm()
-    return render(request, 'cadastro_aluno.html', {'form': form})
+def login_cadastro_view(request):
+    login_form = None # Placeholder, not a Django form
+    cadastro_form = AlunoCadastroForm()
 
-def login_view(request):
     if request.method == 'POST':
-        cpf = request.POST['cpf']
-        password = request.POST['password']
-        user = authenticate(request, cpf=cpf, password=password)
-        if user:
-            login(request, user)
-            return redirect('home')
-        messages.error(request, 'Credenciais inválidas.')
-    return render(request, 'login.html')
+        # Identifica qual formulário foi enviado
+        if 'login_submit' in request.POST:
+            cpf = request.POST.get('cpf')
+            password = request.POST.get('password')
+            user = authenticate(request, cpf=cpf, password=password)
+            if user:
+                login(request, user)
+                if user.is_professor:
+                    return redirect('dashboard')
+                return redirect('votar')
+            else:
+                messages.error(request, 'CPF ou senha inválidos.')
+        
+        elif 'cadastro_submit' in request.POST:
+            cadastro_form = AlunoCadastroForm(request.POST)
+            if cadastro_form.is_valid():
+                user = cadastro_form.save()
+                login(request, user)
+                messages.success(request, 'Cadastro realizado com sucesso!')
+                return redirect('votar')
+            # Se o formulário de cadastro for inválido, ele será re-renderizado com os erros
+
+    context = {
+        'login_form': login_form,
+        'cadastro_form': cadastro_form,
+    }
+    return render(request, 'login_cadastro.html', context)
+
 
 @login_required
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('login_cadastro')
 
 @login_required
 def votar(request):

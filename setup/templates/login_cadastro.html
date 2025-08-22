@@ -1,119 +1,139 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Votação</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-    body {
-        font-family: 'Inter', sans-serif;
-        background: #f8f9fa;
-    }
-    .container {
-        margin-top: 3rem;
-        max-width: 600px;
-    }
-    .card {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-        border-radius: 0.5rem;
-        margin-bottom: 2rem;
-    }
-    .card-header {
-        font-weight: 600;
-        background: #f8f9fa;
-        border-bottom: 1px solid #e9ecef;
-    }
-    .hidden {
-        display: none;
-    }
-    .btn-primary {
-        width: 100%;
-    }
-    .demo-toggle {
-        margin: 1rem auto;
-        display: block;
-        background: #007bff;
-        color: #fff;
-        border: none;
-        padding: 0.5rem 1.5rem;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        cursor: pointer;
-    }
-    </style>
+    <title>SESI - Login/Cadastro</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
 </head>
 <body>
-    <button class="demo-toggle" onclick="toggleForm()">Ver Cadastro</button>
     <div class="container">
-        <!-- Formulário de Login -->
-        <div class="card" id="loginCard">
-            <div class="card-header">Login</div>
-            <div class="card-body">
-                <form method="post" action="{% url 'login' %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="cpf" class="form-label">CPF</label>
-                        <input type="text" class="form-control" id="cpf" name="cpf" required placeholder="CPF sem pontos ou traços">
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Senha</label>
-                        <input type="password" class="form-control" id="password" name="password" required placeholder="Digite sua senha">
-                    </div>
-                    <div class="mb-3">
-                        <button type="submit" class="btn btn-primary">Entrar</button>
-                    </div>
-                </form>
-                <div class="mt-3 text-center">
-                    <a href="#" class="link-secondary" onclick="toggleForm();return false;">Não tem conta? Cadastre-se</a>
-                </div>
+        <!-- Lado Esquerdo -->
+        <div class="left-side">
+            <div class="sesi-logo">
+                <h1>SESI</h1>
+            </div>
+            <div class="hero-content">
+                <div class="hero-image"></div>
+            </div>
+            <div class="decorative-elements">
+                <div class="shape shape1"></div>
+                <div class="shape shape2"></div>
+                <div class="shape shape3"></div>
             </div>
         </div>
-
-        <!-- Formulário de Cadastro -->
-        <div class="card hidden" id="cadastroCard">
-            <div class="card-header">Cadastro</div>
-            <div class="card-body">
-                <form method="post" action="{% url 'cadastro_aluno' %}">
-                    {% csrf_token %}
-                    <div class="row">
-                        <div class="col-6 mb-3">{{ form.first_name.label_tag }} {{ form.first_name }}</div>
-                        <div class="col-6 mb-3">{{ form.last_name.label_tag }} {{ form.last_name }}</div>
+        <!-- Lado Direito -->
+        <div class="right-side">
+            <div class="form-container">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                <!-- Tabs -->
+                <div class="form-tabs">
+                    <button type="button" class="tab-button active" onclick="showTab(event, 'login')">Entrar</button>
+                    <button type="button" class="tab-button" onclick="showTab(event, 'cadastrar')">Cadastrar</button>
+                </div>
+                <!-- Formulário de Login -->
+                <div id="login" class="form-content active">
+                    <h2 class="form-title">Bem-vindo de volta!</h2>
+                    <p class="form-subtitle">Insira suas credenciais para acessar sua conta</p>
+                    <form method="post" action="{% url 'login_cadastro' %}">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <label for="login-cpf">CPF</label>
+                            <input type="text" id="login-cpf" name="cpf" class="input-field" placeholder="000.000.000-00" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="login-password">Senha</label>
+                            <input type="password" id="login-password" name="password" class="input-field" placeholder="Digite sua senha" required>
+                        </div>
+                        <button type="submit" name="login_submit" class="btn-primary">Entrar</button>
+                    </form>
+                    <div class="forgot-password">
+                        <a href="#">Esqueceu sua senha?</a>
                     </div>
-                    <div class="mb-3">{{ form.cpf.label_tag }} {{ form.cpf }}</div>
-                    <div class="mb-3">{{ form.password1.label_tag }} {{ form.password1 }}</div>
-                    <div class="mb-3">{{ form.password2.label_tag }} {{ form.password2 }}</div>
-                    <div class="mb-3">
-                        <button type="submit" class="btn btn-primary">Cadastrar</button>
+                    <div class="divider">
+                        <span>ou continue com</span>
                     </div>
-                </form>
-                <div class="mt-3 text-center">
-                    <a href="#" class="link-secondary" onclick="toggleForm();return false;">Já tem conta? Faça login</a>
+                    <div class="social-buttons">
+                        <button class="btn-social" type="button">Google</button>
+                        <button class="btn-social" type="button">Facebook</button>
+                    </div>
+                </div>
+                <!-- Formulário de Cadastro -->
+                <div id="cadastrar" class="form-content">
+                    <h2 class="form-title">Crie sua conta</h2>
+                    <p class="form-subtitle">Preencha os dados abaixo para começar</p>
+                    <form method="post" action="{% url 'login_cadastro' %}">
+                        {% csrf_token %}
+                        {% if cadastro_form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in cadastro_form.non_field_errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% for field in cadastro_form %}
+                            <div class="input-group">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="form-errors">{{ field.errors }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" name="cadastro_submit" class="btn-primary">Cadastrar</button>
+                    </form>
+                    <div class="divider">
+                        <span>ou cadastre-se com</span>
+                    </div>
+                    <div class="social-buttons">
+                        <button class="btn-social" type="button">Google</button>
+                        <button class="btn-social" type="button">Facebook</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
     <script>
-        function toggleForm() {
-            const loginCard = document.getElementById('loginCard');
-            const cadastroCard = document.getElementById('cadastroCard');
-            const toggleBtn = document.querySelector('.demo-toggle');
-            if (loginCard.classList.contains('hidden')) {
-                loginCard.classList.remove('hidden');
-                cadastroCard.classList.add('hidden');
-                toggleBtn.textContent = 'Ver Cadastro';
-            } else {
-                loginCard.classList.add('hidden');
-                cadastroCard.classList.remove('hidden');
-                toggleBtn.textContent = 'Ver Login';
-            }
+        function showTab(event, tabName) {
+            document.querySelectorAll('.form-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
         }
+        function formatCPF(input) {
+            let value = input.value.replace(/\D/g, '');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            input.value = value;
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('login-cpf').addEventListener('input', function() { formatCPF(this); });
+            const signupCpf = document.getElementById('id_cpf');
+            if(signupCpf) signupCpf.addEventListener('input', function() { formatCPF(this); });
+            
+            // Animação
+            const formContainer = document.querySelector('.form-container');
+            formContainer.style.opacity = '0';
+            formContainer.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                formContainer.style.transition = 'all 0.6s ease';
+                formContainer.style.opacity = '1';
+                formContainer.style.transform = 'translateY(0)';
+            }, 100);
+
+            // Manter a aba de cadastro ativa se houver erros
+            {% if cadastro_form.errors %}
+                showTab(null, 'cadastrar');
+            {% endif %}
+        });
     </script>
 </body>
 </html>
-            }
-        }
-    </script>
 </body>
 </html>

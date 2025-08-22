@@ -5,14 +5,23 @@ from .models import Aluno, Logomarca
 class AlunoCadastroForm(UserCreationForm):
     class Meta:
         model = Aluno
-        fields = ['first_name', 'last_name', 'cpf', 'password1', 'password2']
+        fields = ['first_name', 'last_name', 'cpf'] # Removido password1 e password2, UserCreationForm já os tem
         widgets = {
-            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
-            
+            'first_name': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Digite seu nome'}),
+            'last_name': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Digite seu sobrenome'}),
+            'cpf': forms.TextInput(attrs={'class': 'input-field', 'placeholder': '000.000.000-00'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['password2'].label = "Confirme a Senha"
+        for field_name, field in self.fields.items():
+            if 'password' in field_name:
+                field.widget.attrs.update({'class': 'input-field', 'placeholder': 'Crie uma senha segura'})
+
+
     def clean_cpf(self):
-        cpf = self.cleaned_data['cpf']
+        cpf = self.cleaned_data['cpf'].replace('.', '').replace('-', '')
         if len(cpf) != 11 or not cpf.isdigit():
             raise forms.ValidationError("CPF deve ter 11 dígitos numéricos.")
         if Aluno.objects.filter(cpf=cpf).exists():

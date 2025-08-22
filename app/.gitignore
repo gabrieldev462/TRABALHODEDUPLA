@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+
+# Ambiente virtual
+venv/
+.env/
+
+# Banco de dados local
+db.sqlite3
+
+# Arquivos temporários / cache
+*.log
+*.pot
+*.pyc
+*.mo
+*.swp
+*~
+
+# Configurações de IDE
+.vscode/
+.idea/
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de build/django migrations cache
+*.egg-info/
+*.eggs/
+*.bak
+*.tmp

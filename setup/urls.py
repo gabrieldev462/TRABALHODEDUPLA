@@ -3,15 +3,14 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from app.views import (
-    home, cadastro_aluno, login_view, logout_view, votar, dashboard,
+    home, login_cadastro_view, logout_view, votar, dashboard,
     LogomarcaListView, LogomarcaCreateView, LogomarcaUpdateView, LogomarcaDeleteView
 )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),
-    path('cadastro/', cadastro_aluno, name='cadastro_aluno'),
-    path('login/', login_view, name='login'),
+    path('login/', login_cadastro_view, name='login_cadastro'),
     path('logout/', logout_view, name='logout'),
     path('votar/', votar, name='votar'),
     path('dashboard/', dashboard, name='dashboard'),
